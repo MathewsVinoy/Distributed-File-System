@@ -22,24 +22,29 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    char buffer[1024];
-    char *msg = "user
-";
-    send(clint_socket, msg, strlen(msg), 0);
-     
-    recv(clint_socket,buffer,sizeof(buffer),0);
-    printf("server message:  %s\n",buffer);
+    char msg[1024];
 
-    int i=0,input;
-    while(i!=1){
-        printf("\nEnter an number for the following operations: \n1.Download\n2.Upload\n3.Exit\nEnter the number: ");
-        scanf("%d",&input);
-        write(clint_socket, &input, sizeof(input));
-        if(input == 3){
-            close(clint_socket);
-            i=1;
-        }
-       }
+    size_t buffer = recv(clint_socket, msg, 1024,0);
+    
+    for (size_t i = 0; i < buffer; i++) {
+        putchar(msg[i]);
+    }
+    putchar('\n');
+    // send(clint_socket, msg, strlen(msg), 0);
+    //  
+    // recv(clint_socket,buffer,sizeof(buffer),0);
+    // printf("server message:  %s\n",buffer);
+    //
+    // int i=0,input;
+    // while(i!=1){
+    //     printf("\nEnter an number for the following operations: \n1.Download\n2.Upload\n3.Exit\nEnter the number: ");
+    //     scanf("%d",&input);
+    //     write(clint_socket, &input, sizeof(input));
+    //     if(input == 3){
+    //         close(clint_socket);
+    //         i=1;
+    //     }
+    //    }
 
     close(clint_socket);
     return 0;
