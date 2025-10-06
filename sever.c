@@ -42,28 +42,13 @@ int main(){
     // Use fread and fseek
     // and read from the file
     char buffer[1024];
-    fseek(fp1, 0, SEEK_SET);
-    size_t block1 = fread(buffer, 1, 1024, fp1);
-    send(clint_sock, buffer, block1, 0);
-    printf("send sucessfully\n");
-    for (size_t i = 0; i < block1; i++) {
-        putchar(buffer[i]);
+    recv(clint_sock,buffer, sizeof(buffer),0);
+    if(strcmp(buffer,"GET_BLOCK 0")==0){
+        fseek(fp1, 0, SEEK_SET);
+        size_t block1 = fread(buffer, 1, 1024, fp1);
+        send(clint_sock, buffer, block1, 0);
+        printf("send sucessfully\n");
     }
-    putchar('\n');
-
-
-    //for sending and resiving data
-    // recv(clint_sock,buffer,sizeof(buffer),0);
-    // printf("clint message:  %s\n",buffer);
-    // if(buffer == "storage"){
-    //     char *msg = "Connected to the Server sucessfully";
-    //     send(clint_sock, msg, strlen(msg),0);
-    // }else if(buffer=="user"){
-    //     char *msg = "Hello from the Server";
-    //     send(clint_sock, msg, strlen(msg),0);
-    //     userInteraction(clint_sock);
-    // }
-    //
     close(clint_sock);
     close(server_fd);
 
