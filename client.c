@@ -13,7 +13,7 @@ int main(){
     }
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(8081);
+    server_addr.sin_port = htons(9000);
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     if(connect(clint_socket,(struct sockaddr *)&server_addr, sizeof(server_addr))==-1){
@@ -21,6 +21,11 @@ int main(){
         close(clint_socket);
         exit(EXIT_FAILURE);
     }
+    char comment[100] = "LOOKUP my_file.txt BLOCK 0";
+    send(clint_socket,comment,sizeof(comment),0);
+    char* location;
+    recv(clint_socket,location, 1024,0);
+    printf("The location of the dataserver is : %s",location);
 
     char msg[1024];
 
@@ -30,21 +35,7 @@ int main(){
         putchar(msg[i]);
     }
     putchar('\n');
-    // send(clint_socket, msg, strlen(msg), 0);
-    //  
-    // recv(clint_socket,buffer,sizeof(buffer),0);
-    // printf("server message:  %s\n",buffer);
-    //
-    // int i=0,input;
-    // while(i!=1){
-    //     printf("\nEnter an number for the following operations: \n1.Download\n2.Upload\n3.Exit\nEnter the number: ");
-    //     scanf("%d",&input);
-    //     write(clint_socket, &input, sizeof(input));
-    //     if(input == 3){
-    //         close(clint_socket);
-    //         i=1;
-    //     }
-    //    }
+   
 
     close(clint_socket);
     return 0;
