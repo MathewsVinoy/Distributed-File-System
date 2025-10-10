@@ -23,9 +23,11 @@ int main(){
     }
     char comment[100] = "LOOKUP my_file.txt BLOCK 0";
     send(clint_socket,comment,sizeof(comment),0);
-    char* location;
-    recv(clint_socket,location, 1024,0);
-    printf("The location of the dataserver is : %s",location);
+    char location[1024];
+    memset(location, 0, sizeof(location));
+    recv(clint_socket, location, sizeof(location), 0);
+    printf("The location of the data server is: %s\n", location);
+
 
     char msg[1024];
 
