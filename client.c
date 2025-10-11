@@ -28,18 +28,17 @@ int main(){
     recv(clint_socket, location, sizeof(location), 0);
     printf("The location of the data server is: %s\n", location);
 
-
-    char msg[1024];
-
-    size_t buffer = recv(clint_socket, msg, 1024,0);
-    
-    for (size_t i = 0; i < buffer; i++) {
-        putchar(msg[i]);
-    }
-    putchar('\n');
-   
-
     close(clint_socket);
+
+    // connection to the dataserver for getting data
+    int clint_socket = socket(AF_INET, SOCK_STREAM,0);
+    if(clint_socket==-1){
+        perror("Socket cretaion failed");
+        exit(EXIT_FAILURE);
+    } 
+    sever_addr.sin_port =htons(8000);
+
+ 
     return 0;
 
 }
