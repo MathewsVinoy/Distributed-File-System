@@ -25,8 +25,8 @@ FileMap file_map[] = {
         .filename = "my_file.txt",
         .total_blocks = 2,
         .blocks = {
-            { .blockid = 0, .location = "Data_Server_A:8000" },
-            { .blockid = 1, .location = "Data_Server_B:8001" }
+            { .blockid = 0, .location = "127.0.0.1:8000" },
+            { .blockid = 1, .location = "127.0.0.1:8001" }
         }
     }
 };
