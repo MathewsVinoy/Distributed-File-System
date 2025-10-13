@@ -5,8 +5,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-void userInteraction(int clint_sock);
-
 int main(){
     int server_fd = socket(AF_INET,SOCK_STREAM,0);
     if(server_fd <0){
@@ -16,7 +14,7 @@ int main(){
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(8081);
+    server_addr.sin_port = htons(8000);
 
     if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0){
         perror("Blint Failed");
@@ -41,32 +39,20 @@ int main(){
 
     // Use fread and fseek
     // and read from the file
-    char buffer[1024];
-    recv(clint_sock,buffer, sizeof(buffer),0);
-    if(strcmp(buffer,"GET_BLOCK 0")==0){
+    char buffer[1024], request[50];
+    recv(clint_sock,request, sizeof(request),0);
+    if (strncmp(request, "GET_BLOCK 0", strlen("GET_BLOCK 0")) == 0) {
         fseek(fp1, 0, SEEK_SET);
-        size_t block1 = fread(buffer, 1, 1024, fp1);
-        send(clint_sock, buffer, block1, 0);
-        printf("send sucessfully\n");
+        size_t r = fread(buffer, 1, sizeof(buffer), fp1);
+        send(clint_sock, buffer, r, 0);
+        printf("send successfully\n");
     }
     close(clint_sock);
     close(server_fd);
+    fclose(fp1);
 
     return 0;
 
 }
 
-void userInteraction(int clint_sock){
-    int res;
-    while(1){
-        read(clint_sock,&res,sizeof(res));
-        printf("The input from the clint is: %d\n",res);
-        if(res==3){
-            break;
-        }else if(res==1){
-            printf("The user operation is 1\n");
-        }else if(res==2){
-            printf("The user operation is 2\n");
-        }
-    }
-}
+
