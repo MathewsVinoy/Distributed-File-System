@@ -12,6 +12,7 @@
 typedef struct {
     int blockid;
     char location[MAX_ADDR_LEN];
+    int port;
 } blockinfo;
 
 typedef struct {
@@ -25,24 +26,25 @@ FileMap file_map[] = {
         .filename = "my_file.txt",
         .total_blocks = 2,
         .blocks = {
-            { .blockid = 0, .location = "127.0.0.1:8000" },
-            { .blockid = 1, .location = "127.0.0.1:8001" }
+            { .blockid = 0, .location = "127.0.0.1", .port = 8000 },
+            { .blockid = 1, .location = "127.0.0.1", .port= 8001 }
         }
     }
 };
 int file_map_count = sizeof(file_map) / sizeof(file_map[0]);
 
-char* get_location(char* filename, int block_id){
+blockinfo get_location(char* filename, int block_id){
     for(int i = 0; i < file_map_count; i++){
         if(strcmp(file_map[i].filename, filename) == 0){
             for(int j = 0; j < file_map[i].total_blocks; j++){
                 if(file_map[i].blocks[j].blockid == block_id){
-                    return file_map[i].blocks[j].location;
+                    return file_map[i].blocks[j];
                 }
             }
         }
     }
-    return "No data found";
+    blockinfo b;
+    return  b;
 }
 
 void split(const char* input, char* filename, int* block_id){
@@ -93,9 +95,9 @@ int main(){
         int block_id;
         split(buffer, filename, &block_id);
 
-        char* reply = get_location(filename, block_id);
-        send(clint_sock, reply, strlen(reply), 0);
-        printf("Sent response: %s\n", reply);
+        blockinfo reply = get_location(filename, block_id);
+        send(clint_sock, &reply, sizeof(reply), 0);
+        printf("Sent response: %d\n", reply.port);
 
         close(clint_sock);
     }
