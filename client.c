@@ -29,7 +29,9 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    char comment[100] = "LOOKUP my_file.txt BLOCK 0";
+    //char comment[100] = "LOOKUP my_file.txt BLOCK 0";
+    char comment[100] = "WRITE_BLOCK my_file.txt BLOCK1";
+    
     send(clint_socket, comment, strlen(comment), 0);
 
     block location;
