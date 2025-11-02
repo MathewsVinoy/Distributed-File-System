@@ -52,21 +52,37 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
     FILE* fp1;
-    fp1 = fopen("build/test_data.txt", "r");
-
+    
     // Use fread and fseek
     // and read from the file
     char buffer[1024], request[50];
     recv(clint_sock,request, sizeof(request),0);
     if (strncmp(request, "GET_BLOCK 0", strlen("GET_BLOCK 0")) == 0) {
+        fp1 = fopen("build/my_file.txt", "r");
         fseek(fp1, 0, SEEK_SET);
         size_t r = fread(buffer, 1, sizeof(buffer), fp1);
         send(clint_sock, buffer, r, 0);
         printf("send successfully\n");
-    }else if (strcmp(request, "PUT BLOCK 1"))
+        fclose(fp1);
+    }else if (strcmp(request, "PUT BLOCK 1")==0){
+        fp1 =fopen("buid/my_file.txt", "a");
+        if (fp1 == NULL) {
+            perror("Failed to open file");
+            send(clint_sock, "ERROR: File open failed", 22, 0);
+        } else {
+            send(clint_sock, "ok", 2, 0);
+            ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer) - 1, 0);
+            if (recv_data <= 0) {
+                perror("recv failed");
+            } else {
+                buffer[recv_data] = '\0';
+                fprintf(fp1, "%s", buffer);
+                send(clint_sock, "ok", 2, 0);
+            }
+            fclose(fp1);
+        }    }
     close(clint_sock);
     close(server_fd);
-    fclose(fp1);
 
     return 0;
 
