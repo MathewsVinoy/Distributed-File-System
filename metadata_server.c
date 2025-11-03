@@ -8,11 +8,12 @@
 #define MAX_BLOCKS 10
 #define MAX_FILENAME_LEN 50
 #define MAX_ADDR_LEN 50
+#define MAX_DS 50
 
 typedef struct {
     int blockid;
-    char location[MAX_ADDR_LEN];
-    int port;
+    char locations[MAX_ADDR_LEN][MAX_DS];
+    int ports[MAX_DS];
 } blockinfo;
 
 typedef struct {
@@ -26,8 +27,8 @@ FileMap file_map[] = {
         .filename = "my_file.txt",
         .total_blocks = 2,
         .blocks = {
-            { .blockid = 0, .location = "127.0.0.1", .port = 8000 },
-            { .blockid = 1, .location = "127.0.0.1", .port= 8001 }
+            { .blockid = 0, .locations = {"127.0.0.1","127.0.0.1"}, .ports = {8000, 8001} },
+            { .blockid = 1, .locations = {"127.0.0.1"}, .ports= {8001} }
         }
     }
 };
@@ -43,13 +44,18 @@ blockinfo get_location(char* filename, int block_id){
             }
         }
     }
+    /* return a zero-initialized blockinfo to avoid returning uninitialized memory */
     blockinfo b;
-    return  b;
+    memset(&b, 0, sizeof(b));
+    b.blockid = -1;
+    return b;
 }
 
 void split(const char* input, char* filename, int* block_id){
     char command[20], block_name[20];
-    sscanf(input, "%s %s %s %d", command, filename, block_name, block_id);
+    /* default in case parsing fails */
+    *block_id = -1;
+    sscanf(input, "%19s %49s %19s %d", command, filename, block_name, block_id);
 }
 
 int main(){
@@ -97,7 +103,6 @@ int main(){
 
         blockinfo reply = get_location(filename, block_id);
         send(clint_sock, &reply, sizeof(reply), 0);
-        printf("Sent response: %d\n", reply.port);
 
         close(clint_sock);
     }
