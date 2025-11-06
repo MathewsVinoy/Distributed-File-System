@@ -4,37 +4,18 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include "include/load_metadata.h"
 
 #define MAX_BLOCKS 10
 #define MAX_FILENAME_LEN 50
 #define MAX_ADDR_LEN 50
 #define MAX_DS 50
 
-typedef struct {
-    int blockid;
-    char locations[MAX_ADDR_LEN][MAX_DS];
-    int ports[MAX_DS];
-} blockinfo;
-
-typedef struct {
-    char filename[MAX_FILENAME_LEN];
-    int total_blocks;
-    blockinfo blocks[MAX_BLOCKS];
-} FileMap;
-
-FileMap file_map[] = {
-    {
-        .filename = "my_file.txt",
-        .total_blocks = 2,
-        .blocks = {
-            { .blockid = 0, .locations = {"127.0.0.1","127.0.0.1"}, .ports = {8000, 8001} },
-            { .blockid = 1, .locations = {"127.0.0.1"}, .ports= {8001} }
-        }
-    }
-};
-int file_map_count = sizeof(file_map) / sizeof(file_map[0]);
 
 blockinfo get_location(char* filename, int block_id){
+    FileMap file_map = findlocation(filename); 
+    int file_map_count = sizeof(file_map) / sizeof(file_map[0]);
+
     for(int i = 0; i < file_map_count; i++){
         if(strcmp(file_map[i].filename, filename) == 0){
             for(int j = 0; j < file_map[i].total_blocks; j++){
@@ -51,8 +32,8 @@ blockinfo get_location(char* filename, int block_id){
     return b;
 }
 
-void split(const char* input, char* filename, int* block_id){
-    char command[20], block_name[20];
+void split(const char* input, char* filename, int* block_id, char* command){
+    char block_name[20];
     /* default in case parsing fails */
     *block_id = -1;
     sscanf(input, "%19s %49s %19s %d", command, filename, block_name, block_id);
@@ -97,13 +78,17 @@ int main(){
         recv(clint_sock, buffer, sizeof(buffer), 0);
         printf("Received request: %s\n", buffer);
 
-        char filename[100];
+        char filename[100], command[30];
         int block_id;
-        split(buffer, filename, &block_id);
-
-        blockinfo reply = get_location(filename, block_id);
-        send(clint_sock, &reply, sizeof(reply), 0);
-
+        split(buffer, filename, &block_id, command);
+        if(strcmp(command, "GET_FILE_MAP")==0){
+            FileMap full_map = findlocation(filename);
+            send(clint_sock, full_map, sizeof(reply), 0);
+        }else{
+            blockinfo reply = get_location(filename, block_id);
+            printf("%d", block_id);
+            send(clint_sock, &reply, sizeof(reply), 0);
+        }
         close(clint_sock);
     }
 
