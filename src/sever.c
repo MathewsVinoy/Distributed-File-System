@@ -53,9 +53,7 @@ int main(int argc, char *argv[]){
             exit(EXIT_FAILURE);
         }
     
-    
-        // Use fread and fseek
-        // and read from the file
+
         char buffer[1024], request[50];
         ssize_t req_len = recv(clint_sock, request, sizeof(request) - 1, 0);
         if (req_len <= 0) {
@@ -73,7 +71,7 @@ int main(int argc, char *argv[]){
             if (fp1 == NULL) {
                 perror("Failed to open file for GET");
             } else {
-            fseek(fp1, ((value+1) * 1024), SEEK_SET);
+            fseek(fp1, (value * 1024), SEEK_SET);
             size_t r = fread(buffer, 1, 1024, fp1);
             send(clint_sock, buffer, r, 0);
             printf("send successfully\n");

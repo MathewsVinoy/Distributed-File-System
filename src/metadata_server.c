@@ -105,6 +105,7 @@ int main(){
         char filename[100], command[30];
         int block_id;
         split(buffer, filename, &block_id, command);
+        printf("%s - %s", filename, command);
 
         if (strcmp(command, "GET_FILE_MAP") == 0) {
             FileMap full_map = findlocation(filename);
