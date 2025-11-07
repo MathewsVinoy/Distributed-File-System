@@ -32,7 +32,7 @@ int main(){
     FileMap datamap;  
     recv(clint_socket, &datamap, sizeof(datamap), 0);
     for(int i =0; i<datamap.total_blocks;i++){
-        for(int j=0;j<sizeof(datamap.blocks[i].locations);j++){
+        for(size_t j=0;j<sizeof(datamap.blocks[i].locations);j++){
             clint_socket = socket(AF_INET, SOCK_STREAM, 0);
             if(clint_socket == -1){
                 perror("Socket creation failed");
