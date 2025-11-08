@@ -26,6 +26,8 @@ int main(){
 
     char comment[100] = "GET_FILE_MAP my_file.txt";
     // char comment[100] = "WRITE_BLOCK my_file.txt BLOCK1";
+
+    FILE *fp1 = fopen("out/cli/myfile.txt", "a");
     
     send(clint_socket, comment, strlen(comment), 0);
 
@@ -58,6 +60,7 @@ int main(){
             if (n > 0) {
                 buffer[n] = '\0';
                 printf("Received data: %s\n", buffer);
+                fprintf(fp1, "%s", buffer);
                 close(clint_socket);
                 break;
             }else {
