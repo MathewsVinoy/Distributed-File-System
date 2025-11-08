@@ -6,6 +6,26 @@
 #include <sys/socket.h>
 #include "datastruct.h"
 
+ConnectioPool *connCash = NULL;
+
+int get_connection(const char ip[50], int port){
+    clint_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if(clint_socket == -1){
+        return -1
+    }
+
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = inet_addr(ip);
+
+    if(connect(clint_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1){
+        perror("Data server connection failed");
+        close(clint_socket);
+        return -1;
+    }
+    ConnectionPool *new_node = (ConnectionPool *)malloc(sizeof(ConnectionPool));
+
+}
+
 int main(){
     int clint_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(clint_socket == -1){
@@ -35,21 +55,7 @@ int main(){
     recv(clint_socket, &datamap, sizeof(datamap), 0);
     for(int i =0; i<datamap.total_blocks;i++){
         for(size_t j=0;j<sizeof(datamap.blocks[i].locations);j++){
-            clint_socket = socket(AF_INET, SOCK_STREAM, 0);
-            if(clint_socket == -1){
-                perror("Socket creation failed");
-                continue;
-            }
-
-            server_addr.sin_port = htons(datamap.blocks[i].ports[j]);
-            server_addr.sin_addr.s_addr = inet_addr(datamap.blocks[i].locations[j]);
-
-            if(connect(clint_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1){
-                perror("Data server connection failed");
-                close(clint_socket);
-                continue;
-            }
-            char request[100];
+                        char request[100];
             sprintf(request , "%s %d","GET BLOCK",datamap.blocks[i].blockid);
             send(clint_socket, request, strlen(request), 0);
 
