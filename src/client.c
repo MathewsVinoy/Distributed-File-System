@@ -5,42 +5,23 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "datastruct.h"
+#include "clint/connction_cash.h"
 
-ConnectioPool *connCash = NULL;
-
-int get_connection(const char ip[50], int port){
-    clint_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if(clint_socket == -1){
-        return -1
-    }
-
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = inet_addr(ip);
-
-    if(connect(clint_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1){
-        perror("Data server connection failed");
-        close(clint_socket);
-        return -1;
-    }
-    ConnectionPool *new_node = (ConnectionPool *)malloc(sizeof(ConnectionPool));
-
-}
 
 int main(){
-    int clint_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if(clint_socket == -1){
+    int meta_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if(meta_socket == -1){
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
-
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(9000);
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    if(connect(clint_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1){
+    if(connect(meta_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1){
         perror("Metadata server connection failed");
-        close(clint_socket);
+        close(meta_socket);
         exit(EXIT_FAILURE);
     }
 
@@ -49,13 +30,17 @@ int main(){
 
     FILE *fp1 = fopen("out/cli/myfile.txt", "a");
     
-    send(clint_socket, comment, strlen(comment), 0);
+    send(meta_socket, comment, strlen(comment), 0);
 
     FileMap datamap;  
-    recv(clint_socket, &datamap, sizeof(datamap), 0);
+    recv(meta_socket, &datamap, sizeof(datamap), 0);
+    printf("Received file map for %s with %d blocks\n", datamap.filename, datamap.total_blocks);
+
     for(int i =0; i<datamap.total_blocks;i++){
         for(size_t j=0;j<sizeof(datamap.blocks[i].locations);j++){
-                        char request[100];
+            int clint_socket = get_connection(datamap.blocks[i].locations[j],datamap.blocks[i].ports[j]);
+            printf("Connecting to Data Server %s:%d for block %d\nclint-clocket=%d\n", datamap.blocks[i].locations[j], datamap.blocks[i].ports[j], datamap.blocks[i].blockid, clint_socket);
+            char request[100];
             sprintf(request , "%s %d","GET BLOCK",datamap.blocks[i].blockid);
             send(clint_socket, request, strlen(request), 0);
 
@@ -77,7 +62,9 @@ int main(){
         } 
     }
 
-    close(clint_socket);
+    close(meta_socket);
+    close_all_connections();
+    fclose(fp1);
     return 0;
 }
 
