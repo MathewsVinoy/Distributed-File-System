@@ -26,7 +26,6 @@ int main(){
     }
 
     char comment[100] = "GET_FILE_MAP my_file.txt";
-    // char comment[100] = "WRITE_BLOCK my_file.txt BLOCK1";
 
     FILE *fp1 = fopen("out/cli/myfile.txt", "a");
     
@@ -39,12 +38,11 @@ int main(){
     for(int i =0; i<datamap.total_blocks;i++){
         for(size_t j=0;j<sizeof(datamap.blocks[i].locations);j++){
             int clint_socket = get_connection(datamap.blocks[i].locations[j],datamap.blocks[i].ports[j]);
-            printf("Connecting to Data Server %s:%d for block %d\nclint-clocket=%d\n", datamap.blocks[i].locations[j], datamap.blocks[i].ports[j], datamap.blocks[i].blockid, clint_socket);
             char request[100];
             sprintf(request , "%s %d","GET BLOCK",datamap.blocks[i].blockid);
             send(clint_socket, request, strlen(request), 0);
 
-            char buffer[1024];  // allocate proper space
+            char buffer[1024];  
             memset(buffer, 0, sizeof(buffer));
             ssize_t n =recv(clint_socket, buffer, sizeof(buffer), 0);
 
@@ -52,12 +50,12 @@ int main(){
                 buffer[n] = '\0';
                 printf("Received data: %s\n", buffer);
                 fprintf(fp1, "%s", buffer);
-                close(clint_socket);
+                release_connection(clint_socket);
                 break;
             }else {
                 perror("Failed to receive data");
-                close(clint_socket);
-                continue; // Try next DS
+                release_connection(clint_socket);
+                continue;
             }
         } 
     }
