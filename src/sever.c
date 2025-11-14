@@ -75,7 +75,6 @@ int main(int argc, char *argv[]){
             size_t r = fread(buffer, 1, 1024, fp1);
             send(clint_sock, buffer, r, 0);
             printf("send successfully\n");
-            fclose(fp1);
             }
         }else if (strcmp(request, "PUT BLOCK 1")==0){
             /* use prefix compare in case client sends extra data or different line endings */
@@ -98,13 +97,14 @@ int main(int argc, char *argv[]){
                     fprintf(fp1, "%s", buffer);
                     send(clint_sock, "ok", 2, 0);
                 }
-                fclose(fp1);
+                
             }    
         }
         close(clint_sock);
+        printf("the connection breaked the connection ");
     }
     close(server_fd);
-
+    fclose(fp1); 
     return 0;
 
 }
