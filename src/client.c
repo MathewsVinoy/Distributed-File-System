@@ -12,6 +12,7 @@ int main(){
     int meta_socket = socket(AF_INET, SOCK_STREAM, 0);
     printf("\t\tTHIS IS AN CLINT CONNECTION.");
     printf("\nWhich fuction shoult you need to perform?");
+    printf("1.For Reading block");
     if(meta_socket == -1){
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
