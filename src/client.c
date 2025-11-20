@@ -13,6 +13,7 @@ int main(){
     printf("\t\tTHIS IS AN CLINT CONNECTION.");
     printf("\nWhich fuction shoult you need to perform?");
     printf("1.For Reading block");
+    printf("2.for writing on to the block");
     if(meta_socket == -1){
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
