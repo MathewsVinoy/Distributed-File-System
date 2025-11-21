@@ -13,8 +13,7 @@ CLIENT = $(BUILD_DIR)/cli
 SERVER_SRC = src/sever.c
 METASERVER_SRC = src/metadata_server.c
 METADATA_SRC = src/metadata_res/load_metadata.c
-CLIENT_SRC = src/client.c src/clint_res/connction_cash.c
-
+CLIENT_SRC = src/client.c src/clint_res/connction_cash.c src/clint_res/lookup.c src/clint_res/wirtefuncs.c src/clint_res/read_file.c
 # Default target
 all: $(BUILD_DIR) $(SERVER) $(METASERVER) $(CLIENT)
 
