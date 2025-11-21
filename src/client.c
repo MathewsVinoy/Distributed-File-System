@@ -10,14 +10,24 @@
 
 int main(){
     int meta_socket = socket(AF_INET, SOCK_STREAM, 0);
+    char comment[100] ;
+    int n;
     printf("\t\tTHIS IS AN CLINT CONNECTION.");
     printf("\nWhich fuction shoult you need to perform?");
-    printf("1.For Reading block\n2.for writing on to the block" );
+    printf("1.For Reading block\n2.for writing on to the block");
+    scanf("%d",&n);
+    switch(n){
+        case 1:break;
+        case 2: break;
+        case 3: break;
+        case 4: comment = = "GET_FILE_MAP my_file.txt";
+        break;
+    }
     if(meta_socket == -1){
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
-    struct sockaddr_in server_addr;
+     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(9000);
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -28,7 +38,6 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    char comment[100] = "GET_FILE_MAP my_file.txt";
 
     FILE *fp1 = fopen("out/cli/myfile.txt", "a");
     
@@ -67,5 +76,5 @@ int main(){
     close_all_connections();
     fclose(fp1);
     return 0;
-}
 
+}

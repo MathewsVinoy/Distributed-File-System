@@ -34,10 +34,12 @@ typedef struct FileMap {
     blockinfo blocks[MAX_BLOCKS];
 } FileMap;
 
-typedef struct ConnectionCache {
+typedef struct ConnectionPool {
     int port;
     char location[MAX_ADDR_LEN];
-} ConnectionCache;
+    int socket_fd;
+    struct ConnectionPool *next;
+} ConnectionPool;
 
 #ifdef __cplusplus
 }
