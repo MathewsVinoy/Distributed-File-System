@@ -105,12 +105,15 @@ int main(){
         char filename[100], command[30];
         int block_id;
         split(buffer, filename, &block_id, command);
-        printf("%s - %s", filename, command);
+        printf("%s - %s\n", filename, command);
 
         if (strcmp(command, "GET_FILE_MAP") == 0) {
             FileMap full_map = findlocation(filename);
             send(clint_sock, &full_map, sizeof(full_map), 0);
-        } else {
+        }else if(strcmp(command, "WRITE_BLOCK")==0) {
+            
+        }
+        else {
             blockinfo reply = get_location(filename, block_id);
             printf("Requested block id: %d\n", block_id);
             send(clint_sock, &reply, sizeof(reply), 0);
