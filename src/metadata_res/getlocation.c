@@ -1,4 +1,7 @@
+#include <string.h>
+#include "metadata/getlocation.h"
 #include "datastruct.h"
+#include "load_metadata.h"
 
 
 blockinfo get_location(char* filename, int block_id){
