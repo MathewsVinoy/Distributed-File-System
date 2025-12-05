@@ -10,7 +10,7 @@ FileMap findlocation(char* input) {
     FileMap out = {0};
     int j;
 
-    metadata = fopen("build/metadata.txt", "r");
+    metadata = fopen("database/metadata.txt", "r");
     if (!metadata) {
         perror("Meta Data file not found!!");
         return out;
