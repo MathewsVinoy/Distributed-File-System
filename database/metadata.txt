@@ -1,0 +1,8 @@
+filename my_file.txt
+no_block 2
+blockid 0
+locations {127.0.0.1,127.0.0.1}
+ports {8000,8001}
+blockid 1
+locations {127.0.0.3}
+ports {8000}
