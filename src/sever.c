@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
                 close(clint_sock);
                 continue;
             }
-            fp1 = fopen("build/my_file.txt", "a");
+            fp1 = fopen("databas /my_file.txt", "a");
             if (fp1 == NULL) {
                 perror("Failed to open file");
                 send(clint_sock, "ERROR: File open failed", 22, 0);
