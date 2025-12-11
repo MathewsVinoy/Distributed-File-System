@@ -67,13 +67,16 @@ int main(int argc, char *argv[]){
         int value;
         sscanf(request, "%s %s %d", inst, block, &value);
         if (strncmp(inst, "GET", strlen("GET")) == 0) {
-            fp1 = fopen("build/my_file.txt", "r");
+            fp1 = fopen("database/my_file.txt", "r");
             if (fp1 == NULL) {
                 perror("Failed to open file for GET");
             } else {
             fseek(fp1, (value * 1024), SEEK_SET);
             size_t r = fread(buffer, 1, 1024, fp1);
+            buffer[r] = '\0';
+            printf("data==>%s\n",buffer);
             send(clint_sock, buffer, r, 0);
+            
             printf("send successfully\n");
             }
         }else if (strcmp(request, "PUT BLOCK 1")==0){
@@ -83,7 +86,7 @@ int main(int argc, char *argv[]){
                 close(clint_sock);
                 continue;
             }
-            fp1 = fopen("databas /my_file.txt", "a");
+            fp1 = fopen("database/my_file.txt", "a");
             if (fp1 == NULL) {
                 perror("Failed to open file");
                 send(clint_sock, "ERROR: File open failed", 22, 0);
