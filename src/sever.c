@@ -5,8 +5,10 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#define DATA_FILE "database/my_file.txt"
+#define BLOCK_SIZE 1024
+
 int main(int argc, char *argv[]){
-    FILE* fp1;
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <port>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -35,7 +37,7 @@ int main(int argc, char *argv[]){
     server_addr.sin_port = htons(port);
 
     if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0){
-        perror("Blint Failed");
+        perror("Bind Failed");
         exit(EXIT_FAILURE);
 
     }
@@ -50,11 +52,12 @@ int main(int argc, char *argv[]){
         int clint_sock = accept(server_fd,(struct sockaddr *)&client_addr, &clint_len);
         if(clint_sock<0){
             perror("Accept Failed");
-            exit(EXIT_FAILURE);
+            continue;
         }
     
 
-        char buffer[1024], request[50];
+        char buffer[BLOCK_SIZE];
+        char request[128];
         ssize_t req_len = recv(clint_sock, request, sizeof(request) - 1, 0);
         if (req_len <= 0) {
             perror("recv failed for request");
@@ -63,51 +66,82 @@ int main(int argc, char *argv[]){
         }
         request[req_len] = '\0';
         printf("request: %s\n", request);
-        char inst[20], block[10];
-        int value;
-        sscanf(request, "%s %s %d", inst, block, &value);
-        if (strncmp(inst, "GET", strlen("GET")) == 0) {
-            fp1 = fopen("database/my_file.txt", "r");
-            if (fp1 == NULL) {
-                perror("Failed to open file for GET");
-            } else {
-            fseek(fp1, (value * 1024), SEEK_SET);
-            size_t r = fread(buffer, 1, 1024, fp1);
-            buffer[r] = '\0';
-            printf("data==>%s\n",buffer);
-            send(clint_sock, buffer, r, 0);
-            
-            printf("send successfully\n");
-            }
-        }else if (strcmp(request, "PUT BLOCK 1")==0){
-            /* use prefix compare in case client sends extra data or different line endings */
-            if (strncmp(request, "PUT BLOCK 1", strlen("PUT BLOCK 1")) != 0) {
-                /* not the command we expect */
+        char command[16] = {0};
+        char keyword[16] = {0};
+        int block_id = -1;
+        int parsed = sscanf(request, "%15s %15s %d", command, keyword, &block_id);
+
+        if (parsed < 2 || strcmp(keyword, "BLOCK") != 0) {
+            const char *msg = "ERROR: Invalid request format";
+            send(clint_sock, msg, strlen(msg), 0);
+            close(clint_sock);
+            continue;
+        }
+
+        if (strcmp(command, "GET") == 0) {
+            if (parsed < 3 || block_id < 0) {
+                const char *msg = "ERROR: Missing block id";
+                send(clint_sock, msg, strlen(msg), 0);
                 close(clint_sock);
                 continue;
             }
-            fp1 = fopen("database/my_file.txt", "a");
-            if (fp1 == NULL) {
-                perror("Failed to open file");
-                send(clint_sock, "ERROR: File open failed", 22, 0);
+
+            FILE *fp = fopen(DATA_FILE, "rb");
+            if (fp == NULL) {
+                perror("Failed to open file for GET");
+                const char *msg = "ERROR: File open failed";
+                send(clint_sock, msg, strlen(msg), 0);
             } else {
-                send(clint_sock, "ok", 2, 0);
-                ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer) - 1, 0);
+                if (fseek(fp, (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
+                    perror("fseek failed");
+                }
+
+                size_t r = fread(buffer, 1, BLOCK_SIZE, fp);
+                if (r == 0 && ferror(fp)) {
+                    perror("fread failed");
+                } else {
+                    send(clint_sock, buffer, r, 0);
+                }
+                fclose(fp);
+            }
+        } else if (strcmp(command, "PUT") == 0) {
+            if (parsed < 3 || block_id < 0) {
+                const char *msg = "ERROR: Missing block id";
+                send(clint_sock, msg, strlen(msg), 0);
+                close(clint_sock);
+                continue;
+            }
+
+            FILE *fp = fopen(DATA_FILE, block_id == 0 ? "wb" : "r+b");
+            if (fp == NULL) {
+                perror("Failed to open file for PUT");
+                const char *msg = "ERROR: File open failed";
+                send(clint_sock, msg, strlen(msg), 0);
+            } else {
+                if (fseek(fp, (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
+                    perror("fseek failed");
+                }
+
+                ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer), 0);
                 if (recv_data <= 0) {
                     perror("recv failed for data");
                 } else {
-                    buffer[recv_data] = '\0';
-                    fprintf(fp1, "%s", buffer);
+                    if ((size_t)recv_data != fwrite(buffer, 1, (size_t)recv_data, fp)) {
+                        perror("fwrite failed");
+                    }
                     send(clint_sock, "ok", 2, 0);
                 }
-                
-            }    
+                fclose(fp);
+            }
+        } else {
+            const char *msg = "ERROR: Unknown command";
+            send(clint_sock, msg, strlen(msg), 0);
         }
+
         close(clint_sock);
-        printf("the connection breaked the connection ");
+        printf("Client connection closed\n");
     }
     close(server_fd);
-    fclose(fp1); 
     return 0;
 
 }
