@@ -38,8 +38,11 @@ int lookupBlock(){
     close(clint_socket);
 
     // Connect to the data server
-    size_t server_count = sizeof(location.locations) / sizeof(location.locations[0]);
-    for(size_t i = 0; i < server_count; i++){
+    for(size_t i = 0; i < MAX_DS; i++){
+
+        if (location.ports[i] <= 0 || location.locations[i][0] == '\0') {
+            continue; /* skip unused slots */
+        }
 
         clint_socket = socket(AF_INET, SOCK_STREAM, 0);
         if(clint_socket == -1){
@@ -56,8 +59,9 @@ int lookupBlock(){
             continue;
         }
 
-        // Correct way to send GET request
-        char request[50] = "GET_BLOCK 0";
+        // Request the specific block from the data server
+        char request[64];
+        snprintf(request, sizeof(request), "GET BLOCK %d", location.blockid);
         send(clint_socket, request, strlen(request), 0);
 
         char buffer[1024];  // allocate proper space
