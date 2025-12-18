@@ -8,6 +8,7 @@
 #include "datastruct.h"
 
 void writeblock(){
+    FileMap full_map = findlocation(filename);
     
 }
 
