@@ -6,8 +6,10 @@
 #include <sys/socket.h>
 #include "load_metadata.h"
 #include "datastruct.h"
+#include "metadata/getlocation.h"
 
-void writeblock(){
+
+void writeblock (){
     FileMap full_map = findlocation(filename);
     
 }
