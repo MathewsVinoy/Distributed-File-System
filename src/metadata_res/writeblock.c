@@ -9,8 +9,14 @@
 #include "metadata/getlocation.h"
 
 
-void writeblock (){
+void writeblock (int server_fd){
     FileMap full_map = findlocation(filename);
-    
+    int i;
+    blockinfo block;
+    for(i=0;i<full_map.total_blocks;i++){
+        block = fullmap.blocks[i];
+        //complete the connection code later 
+        //need to connect to all other servers and send an requsite that need to send data or  not
+    }
 }
 
