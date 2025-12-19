@@ -11,10 +11,10 @@
 
 void writeblock (int server_fd, char filename[100]){
     FileMap full_map = findlocation(filename);
-    int i;
+    int i,j;
     blockinfo block;
     for(i=0;i<full_map.total_blocks;i++){
-        int clint_socket = get_connection(datamap.blocks[i].locations[j],datamap.blocks[i].ports[j]);
+        int clint_socket = get_connection(full_map.blocks[i].locations[j],datamap.blocks[i].ports[j]);
         char request[100];
         
         
