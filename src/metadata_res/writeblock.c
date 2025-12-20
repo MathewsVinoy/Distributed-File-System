@@ -9,17 +9,28 @@
 #include "metadata/getlocation.h"
 #include "clint/connction_cash.h"
 
-void writeblock (int server_fd, char filename[100]){
-    FileMap full_map = findlocation(filename);
-    int i,j;
+int writeblock (int server_fd, char filename[100],int no){
+    FileMapchar buffer[100], msg[50];
+    char buffer[100], msg[100];
+    int i,j,about=1;
     blockinfo block;
     for(i=0;i<full_map.total_blocks;i++){
-        int clint_socket = get_connection(full_map.blocks[i].locations[j],datamap.blocks[i].ports[j]);
-        char request[100];
-        
-        
-        //complete the connection code later 
-        //need to connect to all other servers and send an requsite that need to send data or  not
+        if(full_map.blocks[i].blockid==no){
+            for(j=0;j<sizeof(full_map.blocks[i].locations),j++){
+                int clint_socket = get_connection(full_map.blocks[i].locations[j],full_map.blocks[i].ports[j]);
+                sprintf(msg,"PREPARE_WRITE Block %d",no);
+                send(clint_socket,msg,sizeof(msg),0);
+                ssize_t recv_bytes = recv(clint_socket, buffer, sizeof(buffer) - 1, 0);
+                if (recv_bytes <= 0) {
+                    close(clint_socket);
+                    return 0
+                }
+                if(strcmp(buffer, "ABORT")==0){
+                    close(clint_socket);
+                    return 0;
+                }
+            }
+        }
     }
 }
 
