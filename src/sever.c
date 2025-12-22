@@ -9,6 +9,7 @@
 #define BLOCK_SIZE 1024
 
 int main(int argc, char *argv[]){
+    int temp_conn;
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <port>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -104,36 +105,61 @@ int main(int argc, char *argv[]){
                 }
                 fclose(fp);
             }
-        } else if (strcmp(command, "PUT") == 0) {
-            if (parsed < 3 || block_id < 0) {
-                const char *msg = "ERROR: Missing block id";
-                send(clint_sock, msg, strlen(msg), 0);
+        }else if(strcmp(command, "PREPARE_WRITE")==0){
+            temp_conn = clint_sock;
+            close(clint_sock);
+            int clint_sock = accept(server_fd,(struct sockaddr *)&client_addr, &clint_len);
+            if(clint_sock<0){
+                perror("Accept Failed");
+                send(temp_conn,"ABORT",strlen("ABORT"),0);
+                close(temp_conn);
+            }
+            ssize_t req_len = recv(clint_sock, request, sizeof(request) - 1, 0);
+            if (req_len <= 0) {
+                perror("recv failed for request");
+                send(temp_conn,"ABORT",strlen("ABORT"),0);
                 close(clint_sock);
-                continue;
+                close(temp_conn);
             }
-
-            FILE *fp = fopen(DATA_FILE, block_id == 0 ? "wb" : "r+b");
-            if (fp == NULL) {
-                perror("Failed to open file for PUT");
-                const char *msg = "ERROR: File open failed";
-                send(clint_sock, msg, strlen(msg), 0);
-            } else {
-                if (fseek(fp, (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
-                    perror("fseek failed");
-                }
-
-                ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer), 0);
-                if (recv_data <= 0) {
-                    perror("recv failed for data");
+            request[req_len] = '\0';
+            printf("request: %s\n", request);
+            sscanf(request, "%15s %15s %d", command, keyword, &block_id);
+            char file_path[50];
+            sprintf(file_path,"database/log/temp%d.txt",port);
+            if(strcmp(command,"PUT")==0){
+                FILE fp* = fopen(file_path,'w');
+                if (fp == NULL) {
+                    perror("Failed to open file for PUT");
+                    const char *msg = "ERROR: File open failed";
+                    send(clint_sock, msg, strlen(msg), 0);
+                    send(temp_conn,"ABORT",strlen("ABORT"),0);
+                    close(temp_conn);
                 } else {
-                    if ((size_t)recv_data != fwrite(buffer, 1, (size_t)recv_data, fp)) {
-                        perror("fwrite failed");
+                    if (fseek(fp, (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
+                        perror("fseek failed");
+                        send(temp_conn,"ABORT",strlen("ABORT"),0);
+                        close(temp_conn);
                     }
-                    send(clint_sock, "ok", 2, 0);
+
+                    ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer), 0);
+                    if (recv_data <= 0) {
+                        perror("recv failed for data");
+                        send(temp_conn,"ABORT",strlen("ABORT"),0);
+                        close(temp_conn);
+                    } else {
+                        if ((size_t)recv_data != fwrite(buffer, 1, (size_t)recv_data, fp)) {
+                            perror("fwrite failed");
+                            send(temp_conn,"ABORT",strlen("ABORT"),0);
+                            close(temp_conn);
+                        }
+                        send(clint_sock, "ok", 2, 0);
+                        send(temp_conn, "READY", 5,0);
+                    }
+                    fclose(fp);
+                    close(temp_conn);
                 }
-                fclose(fp);
             }
-        } else {
+        }else {
             const char *msg = "ERROR: Unknown command";
             send(clint_sock, msg, strlen(msg), 0);
         }
