@@ -132,33 +132,37 @@ int main(int argc, char *argv[]){
                     perror("Failed to open file for PUT");
                     const char *msg = "ERROR: File open failed";
                     send(clint_sock, msg, strlen(msg), 0);
-                    send(temp_conn,"ABORT",strlen("ABORT"),0);
-                    close(temp_conn);
+                    send(temp_conn,"ABORT",strlen("ABORT"),0); 
                 } else {
                     if (fseek(fp, (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
                         perror("fseek failed");
                         send(temp_conn,"ABORT",strlen("ABORT"),0);
-                        close(temp_conn);
                     }
 
                     ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer), 0);
                     if (recv_data <= 0) {
                         perror("recv failed for data");
                         send(temp_conn,"ABORT",strlen("ABORT"),0);
-                        close(temp_conn);
                     } else {
                         if ((size_t)recv_data != fwrite(buffer, 1, (size_t)recv_data, fp)) {
                             perror("fwrite failed");
                             send(temp_conn,"ABORT",strlen("ABORT"),0);
-                            close(temp_conn);
                         }
                         send(clint_sock, "ok", 2, 0);
                         send(temp_conn, "READY", 5,0);
                     }
-                    fclose(fp);
-                    close(temp_conn);
                 }
             }
+            req_len=recv(temp_conn, request, sizeof(request) - 1, 0);
+            request[req_len] = '\0';
+            printf("request: %s\n", request);
+            sscanf(request, "%15s %15s %d", command, keyword, &block_id);
+            if(strcmp(command,"GLOBAL_COMMIT")==0){
+                
+            }else{
+
+            }
+
         }else {
             const char *msg = "ERROR: Unknown command";
             send(clint_sock, msg, strlen(msg), 0);
