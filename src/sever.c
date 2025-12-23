@@ -158,6 +158,8 @@ int main(int argc, char *argv[]){
             printf("request: %s\n", request);
             sscanf(request, "%15s %15s %d", command, keyword, &block_id);
             if(strcmp(command,"GLOBAL_COMMIT")==0){
+                FILE fp1* = fopen(DATA_FILE, "wb");
+                FILE fp2* = fopen(file_path, "rb");
                 
             }else{
 
