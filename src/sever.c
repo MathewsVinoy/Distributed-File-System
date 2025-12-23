@@ -158,9 +158,15 @@ int main(int argc, char *argv[]){
             printf("request: %s\n", request);
             sscanf(request, "%15s %15s %d", command, keyword, &block_id);
             if(strcmp(command,"GLOBAL_COMMIT")==0){
-                FILE fp1* = fopen(DATA_FILE, "wb");
-                FILE fp2* = fopen(file_path, "rb");
-                
+                FILE *fp1 = fopen(DATA_FILE, "wb");
+                FILE *fp2 = fopen(file_path, "rb");
+                if (fseek(f2, 0, 1024) != 0) {
+                    perror("fseek failed");
+                }
+                size_t r = fread(buffer, 1, BLOCK_SIZE, fp2);
+                if(fseek(fp1,(long)block_id * BLOCK_SIZE, SEEK_SET)){
+                    fwrite(buffer,1,sizeof(buffer),fp2);
+                }
             }else{
 
             }
