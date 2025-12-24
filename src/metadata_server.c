@@ -45,6 +45,7 @@ void split(const char* input, char* filename, int* block_id, char* command){
 
 int main(){
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    FileMap full_map;
     if(server_fd < 0){
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
@@ -88,10 +89,12 @@ int main(){
         printf("%s - %s\n", filename, command);
 
         if (strcmp(command, "GET_FILE_MAP") == 0) {
-            FileMap full_map = findlocation(filename);
+            full_map = findlocation(filename);
             send(clint_sock, &full_map, sizeof(full_map), 0);
         }else if(strcmp(command, "WRITE_BLOCK")==0) {
-            
+            full_map = findlocation(filename);
+            write_block();
+            send(clint_sock,&full_map,sizeof(full_map),0);
         }
         else {
             blockinfo reply = get_location(filename, block_id);
