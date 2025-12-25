@@ -27,7 +27,18 @@ int* write_block(FileMap datamap, int blockid){
 }
 
 void status_listen(int *ds_lists){
-    for(int i=0; i<sizeof(ds_list)){
-
+    char buffer[50];
+    int flag =0;
+    for(int i=0; i<sizeof(ds_list);i++){
+        recv(clint_sock, buffer, sizeof(buffer), 0);
+        if(strcmp("ABORT",buffer)==0){
+            flag =1;
+            break;
+        }
+    }
+    if(flag==1){
+        send();
+    }else{
+        send();
     }
 }
