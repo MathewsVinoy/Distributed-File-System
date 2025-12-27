@@ -7,7 +7,7 @@
 #include "load_metadata.h"
 #include "datastruct.h"
 #include "metadata/getlocation.h"
-
+#include "metadata/writeblock.h"
 
 void split(const char* input, char* filename, int* block_id, char* command){
     /* Robust tokenization: command filename [blockid] */
@@ -93,8 +93,9 @@ int main(){
             send(clint_sock, &full_map, sizeof(full_map), 0);
         }else if(strcmp(command, "WRITE_BLOCK")==0) {
             full_map = findlocation(filename);
-            write_block();
+            int *ds_list = write_block(full_map,block_id);
             send(clint_sock,&full_map,sizeof(full_map),0);
+            status_listen(ds_list,block_id);
         }
         else {
             blockinfo reply = get_location(filename, block_id);
