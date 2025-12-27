@@ -107,70 +107,85 @@ int main(int argc, char *argv[]){
             }
         }else if(strcmp(command, "PREPARE_WRITE")==0){
             temp_conn = clint_sock;
-            close(clint_sock);
-            int clint_sock = accept(server_fd,(struct sockaddr *)&client_addr, &clint_len);
-            if(clint_sock<0){
-                perror("Accept Failed");
-                send(temp_conn,"ABORT",strlen("ABORT"),0);
-                close(temp_conn);
-            }
-            ssize_t req_len = recv(clint_sock, request, sizeof(request) - 1, 0);
-            if (req_len <= 0) {
-                perror("recv failed for request");
-                send(temp_conn,"ABORT",strlen("ABORT"),0);
+            const char *ready_msg = "ok";
+            send(temp_conn, ready_msg, strlen(ready_msg), 0);
+            // Don't close temp_conn yet - we need it for the 2PC protocol
+        }else if(strcmp(command, "PUT")==0){
+            if (parsed < 3 || block_id < 0) {
+                const char *msg = "ERROR: Missing block id";
+                send(clint_sock, msg, strlen(msg), 0);
                 close(clint_sock);
-                close(temp_conn);
+                continue;
             }
-            request[req_len] = '\0';
-            printf("request: %s\n", request);
-            sscanf(request, "%15s %15s %d", command, keyword, &block_id);
-            char file_path[50];
-            sprintf(file_path,"database/log/temp%d.txt",port);
-            if(strcmp(command,"PUT")==0){
-                FILE fp* = fopen(file_path,'w');
-                if (fp == NULL) {
-                    perror("Failed to open file for PUT");
-                    const char *msg = "ERROR: File open failed";
+            
+            char file_path[100];
+            sprintf(file_path,"database/log/temp%d_block%d.txt", port, block_id);
+            
+            const char *ok_msg = "ok";
+            send(clint_sock, ok_msg, strlen(ok_msg), 0);
+            
+            FILE *fp = fopen(file_path,"wb");
+            if (fp == NULL) {
+                perror("Failed to open file for PUT");
+                const char *msg = "ERROR: File open failed";
+                send(clint_sock, msg, strlen(msg), 0);
+            } else {
+                ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer), 0);
+                if (recv_data <= 0) {
+                    perror("recv failed for data");
+                    const char *msg = "ERROR: Data receive failed";
                     send(clint_sock, msg, strlen(msg), 0);
-                    send(temp_conn,"ABORT",strlen("ABORT"),0); 
                 } else {
-                    if (fseek(fp, (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
-                        perror("fseek failed");
-                        send(temp_conn,"ABORT",strlen("ABORT"),0);
-                    }
-
-                    ssize_t recv_data = recv(clint_sock, buffer, sizeof(buffer), 0);
-                    if (recv_data <= 0) {
-                        perror("recv failed for data");
-                        send(temp_conn,"ABORT",strlen("ABORT"),0);
+                    if ((size_t)recv_data != fwrite(buffer, 1, (size_t)recv_data, fp)) {
+                        perror("fwrite failed");
+                        const char *msg = "ERROR: Write failed";
+                        send(clint_sock, msg, strlen(msg), 0);
                     } else {
-                        if ((size_t)recv_data != fwrite(buffer, 1, (size_t)recv_data, fp)) {
-                            perror("fwrite failed");
-                            send(temp_conn,"ABORT",strlen("ABORT"),0);
-                        }
-                        send(clint_sock, "ok", 2, 0);
-                        send(temp_conn, "READY", 5,0);
+                        send(clint_sock, ok_msg, strlen(ok_msg), 0);
                     }
                 }
+                fclose(fp);
             }
-            req_len=recv(temp_conn, request, sizeof(request) - 1, 0);
-            request[req_len] = '\0';
-            printf("request: %s\n", request);
-            sscanf(request, "%15s %15s %d", command, keyword, &block_id);
-            if(strcmp(command,"GLOBAL_COMMIT")==0){
-                FILE *fp1 = fopen(DATA_FILE, "wb");
-                FILE *fp2 = fopen(file_path, "rb");
-                if (fseek(f2, 0, 1024) != 0) {
-                    perror("fseek failed");
-                }
-                size_t r = fread(buffer, 1, BLOCK_SIZE, fp2);
-                if(fseek(fp1,(long)block_id * BLOCK_SIZE, SEEK_SET)){
-                    fwrite(buffer,1,sizeof(buffer),fp2);
-                }
-            }else{
-
+        }else if(strcmp(command, "GLOBAL_COMMIT")==0){
+            if (parsed < 3 || block_id < 0) {
+                close(clint_sock);
+                continue;
             }
-
+            
+            char file_path[100];
+            sprintf(file_path,"database/log/temp%d_block%d.txt", port, block_id);
+            
+            FILE *fp_temp = fopen(file_path, "rb");
+            if (fp_temp == NULL) {
+                perror("Failed to open temp file for COMMIT");
+            } else {
+                size_t r = fread(buffer, 1, BLOCK_SIZE, fp_temp);
+                fclose(fp_temp);
+                
+                FILE *fp_data = fopen(DATA_FILE, "r+b");
+                if (fp_data == NULL) {
+                    fp_data = fopen(DATA_FILE, "wb");
+                }
+                
+                if (fp_data != NULL) {
+                    if (fseek(fp_data, (long)block_id * BLOCK_SIZE, SEEK_SET) == 0) {
+                        fwrite(buffer, 1, r, fp_data);
+                    }
+                    fclose(fp_data);
+                }
+                
+                // Clean up temp file
+                remove(file_path);
+            }
+        }else if(strcmp(command, "GLOBAL_ABORT")==0){
+            if (parsed < 3 || block_id < 0) {
+                close(clint_sock);
+                continue;
+            }
+            
+            char file_path[100];
+            sprintf(file_path,"database/log/temp%d_block%d.txt", port, block_id);
+            remove(file_path);
         }else {
             const char *msg = "ERROR: Unknown command";
             send(clint_sock, msg, strlen(msg), 0);
