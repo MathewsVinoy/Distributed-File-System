@@ -4,6 +4,8 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <pthread.h>
+#include "dataserver/heatbeat.h"
 
 #define DATA_FILE "database/my_file.txt"
 #define BLOCK_SIZE 1024
@@ -36,6 +38,12 @@ int main(int argc, char *argv[]){
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(port);
+
+
+    // made the heart beat code
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, heardbeat, NULL); // Create thread
+
 
     if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0){
         perror("Bind Failed");
@@ -195,6 +203,7 @@ int main(int argc, char *argv[]){
         printf("Client connection closed\n");
     }
     close(server_fd);
+    pthread_join(thread_id, NULL);     
     return 0;
 
 }
