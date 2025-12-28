@@ -10,7 +10,7 @@ METASERVER = $(BUILD_DIR)/metaser
 CLIENT = $(BUILD_DIR)/cli
 
 # Source files (actual paths in the repo)
-SERVER_SRC = src/sever.c
+SERVER_SRC = src/sever.c src/dataserver_res/heatbeat.h
 METASERVER_SRC = src/metadata_server.c
 METADATA_SRC = src/metadata_res/load_metadata.c src/metadata_res/getlocation.c src/metadata_res/writeblock.c src/clint_res/connction_cash.c
 CLIENT_SRC = src/client.c src/clint_res/connction_cash.c src/clint_res/lookup.c src/clint_res/wirtefuncs.c src/clint_res/read_file.c
