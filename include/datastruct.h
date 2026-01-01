@@ -22,6 +22,8 @@ extern "C" {
 #define MAX_DS 50
 #endif
 
+#include <time.h>
+
 typedef struct blockinfo {
     int blockid;
     char locations[MAX_DS][MAX_ADDR_LEN];
@@ -40,6 +42,12 @@ typedef struct ConnectionPool {
     int socket_fd;
     struct ConnectionPool *next;
 } ConnectionPool;
+
+typedef struct LastSeen{
+    char location[MAX_ADDR_LEN];
+    int port;
+    time_t now;
+}LastSeen;
 
 #ifdef __cplusplus
 }
