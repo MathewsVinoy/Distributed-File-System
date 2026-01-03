@@ -10,7 +10,7 @@
 ConnectionPool *connCash = NULL;
 
 
-int lookup_connection(const char ip[50], int port){
+int lookup_connection(const char *ip, int port){
     ConnectionPool *current = connCash;
     while(current != NULL){
         if(strcmp(current->location,ip)==0 && current->port==port){
@@ -21,7 +21,7 @@ int lookup_connection(const char ip[50], int port){
     return -1;
 }
 
-int get_connection(const char ip[50], int port){
+int get_connection(const char *ip, int port){
     int clint_socket = lookup_connection(ip,port);
     if(clint_socket !=-1){
         return clint_socket;
