@@ -35,7 +35,7 @@ int writeFile(){
     blockinfo location;
     ssize_t recv_bytes = recv(clint_socket, &location, sizeof(location), 0);
     if (recv_bytes <= 0) {
-        perror("Failed to receive location from metadata server");
+        fprintf(stderr, "Failed to receive location from metadata server\n");
         close(clint_socket);
         exit(EXIT_FAILURE);
     }
@@ -46,7 +46,7 @@ int writeFile(){
     char test[1024] = "\ntest Data writing to file"; 
     // Connect to the data server
     /* iterate over returned locations until an empty address or port 0 is found */
-    for(int i=0; i < 50; i++){
+    for(int i=0; i < MAX_DS; i++){
         if (location.ports[i] == 0 || location.locations[i][0] == '\0') {
             break;
         }
@@ -90,10 +90,10 @@ int writeFile(){
             if (strcmp(buffer, "ok") == 0) {
                 printf("Data written successfully\n");
             } else {
-                perror("Error occurred when writing");
+                fprintf(stderr, "Error occurred when writing\n");
             }
         } else {
-            perror("Failed to write the data");
+            fprintf(stderr, "Failed to write the data\n");
         }
 
         close(clint_socket);
