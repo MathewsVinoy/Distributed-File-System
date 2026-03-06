@@ -1,4 +1,42 @@
-checkmate/
-out
+# Build artifacts
 build/
+*.o
+*.a
+*.so
+*.out
+out
+
+# Executables
+cli
+client_http
+metaser
+ser
+
+# Database and logs
 database/log/
+database/lastseen.csv
+database/metadata.txt
+database/users/*/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+temp*
+
+# Backup files
+*.bak
+*.backup
+
+# Core dumps
+core
+core.*
+
+checkmate/
