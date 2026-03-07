@@ -1,0 +1,3 @@
+# username,password,absolute_or_relative_root
+alice,pass123,database/users/alice
+bob,pass123,database/users/bob
