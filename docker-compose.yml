@@ -1,0 +1,113 @@
+version: "3.8"
+
+services:
+  metadata:
+    build: .
+    container_name: dfs-metadata
+    command: /app/build/metaser /app/config/dfs.conf
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./database:/app/database
+      - ./config:/app/config
+    networks:
+      - dfs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 9000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dataserver1:
+    build: .
+    container_name: dfs-dataserver1
+    command: /app/build/ser /app/config/dfs.conf 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./database:/app/database
+      - ./config:/app/config
+    networks:
+      - dfs-network
+    depends_on:
+      - metadata
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 8000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dataserver2:
+    build: .
+    container_name: dfs-dataserver2
+    command: /app/build/ser /app/config/dfs.conf 8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./database:/app/database
+      - ./config:/app/config
+    networks:
+      - dfs-network
+    depends_on:
+      - metadata
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 8001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dataserver3:
+    build: .
+    container_name: dfs-dataserver3
+    command: /app/build/ser /app/config/dfs.conf 8002
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./database:/app/database
+      - ./config:/app/config
+    networks:
+      - dfs-network
+    depends_on:
+      - metadata
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 8002 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  webclient:
+    build: .
+    container_name: dfs-webclient
+    command: /app/build/client_http /app/config/dfs.conf
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./database:/app/database
+      - ./config:/app/config
+      - ./webclient:/app/webclient
+    networks:
+      - dfs-network
+    depends_on:
+      - metadata
+      - dataserver1
+      - dataserver2
+      - dataserver3
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  dfs-network:
+    driver: bridge
+
+volumes:
+  database:
+  config:
