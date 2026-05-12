@@ -3,6 +3,6 @@
 
 #include "datastruct.h"
 
-blockinfo get_location(char* filename, int block_id);
+int get_location(const char *metadata_path, const char *filename, int block_id, blockinfo *out);
 
 #endif
