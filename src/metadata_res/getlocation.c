@@ -3,25 +3,26 @@
 #include "datastruct.h"
 #include "load_metadata.h"
 
+int get_location(const char *metadata_path, const char *filename, int block_id, blockinfo *out) {
+    if (!metadata_path || !filename || !out) {
+        return -1;
+    }
 
-blockinfo get_location(char* filename, int block_id){
-    FileMap file_map = findlocation(filename);
+    FileMap file_map;
+    if (findlocation(metadata_path, filename, &file_map) != 0) {
+        return -1;
+    }
 
-    blockinfo b;
-    memset(&b, 0, sizeof(b));
-    b.blockid = -1;
-
-    /* ensure the returned FileMap matches the requested filename */
     if (strcmp(file_map.filename, filename) != 0) {
-        return b;
+        return -1;
     }
 
     for (int j = 0; j < file_map.total_blocks; j++) {
         if (file_map.blocks[j].blockid == block_id) {
-            return file_map.blocks[j];
+            memcpy(out, &file_map.blocks[j], sizeof(blockinfo));
+            return 0;
         }
     }
-
-    return b; /* not found */
+    return -1;
 }
 
